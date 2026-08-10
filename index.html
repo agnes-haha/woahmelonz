@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rind & Reborn — Watermelon Waste, Reimagined</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rind-dark:#1F4032;
+    --rind-mid:#3D7A4F;
+    --rind-cream:#F2ECD8;
+    --flesh:#F0405A;
+    --flesh-deep:#C22B45;
+    --ink:#211D1A;
+    --lime:#C7D93E;
+    --white:#fff5db;
+    --charcoal:#151311;
+    --shadow: 0 10px 30px rgba(31,64,50,0.18);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{ font-family:'Space Grotesk', sans-serif; color:var(--ink); line-height:1.5; overflow-x:hidden;
+    background:linear-gradient(180deg,
+      var(--rind-dark) 0, var(--rind-cream) 6%, var(--rind-cream) 26%,
+      var(--flesh) 30%, var(--flesh) 40%, var(--rind-cream) 44%,
+      var(--rind-cream) 62%, var(--rind-dark) 66%, var(--rind-dark) 80%,
+      var(--charcoal) 83%, var(--charcoal) 94%, var(--rind-cream) 97%, var(--rind-cream) 100%);
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; font-weight:600; letter-spacing:-0.01em; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{color:inherit;}
+  img{max-width:100%; display:block;}
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 28px; position:relative; z-index:2;}
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  #progressRing{ position:fixed; bottom:24px; right:24px; width:64px; height:64px; z-index:500; cursor:pointer; }
+  #progressRing svg{ transform:rotate(-90deg); }
+  #progressRing circle{ fill:none; stroke-width:6; }
+  #progressRing .track{ stroke:rgba(33,29,26,0.12); }
+  #progressRing .fill{ stroke:var(--flesh); stroke-linecap:round; transition:stroke-dashoffset .1s linear; }
+  @media (max-width:640px){ #progressRing{ width:48px; height:48px; bottom:14px; right:14px; } }
+
+  header.top{ background:rgba(31,64,50,0.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    color:var(--rind-cream); position:sticky; top:0; z-index:100; border-bottom:1px solid rgba(255,253,248,0.12); }
+  .navwrap{ max-width:1120px; margin:0 auto; padding:16px 28px; display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:600; font-size:1.25rem; }
+  .brand .dot{ width:12px; height:12px; border-radius:50%; background:var(--flesh); box-shadow:0 0 0 3px rgba(240,64,90,0.25); }
+  nav.links{ display:flex; gap:26px; font-size:0.92rem; }
+  nav.links a{ text-decoration:none; opacity:0.85; transition:opacity .2s; }
+  nav.links a:hover{ opacity:1; }
+  nav.links a:focus-visible{ outline:2px solid var(--lime); outline-offset:4px; }
+  @media (max-width:820px){ nav.links{ display:none; } }
+
+  /* ---------- hero ---------- */
+  section.hero{ padding:96px 0 60px; position:relative; }
+  .hero-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:48px; align-items:center; }
+  @media (max-width:860px){ .hero-grid{ grid-template-columns:1fr; } }
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:0.12em; font-size:0.75rem; color:var(--flesh-deep); font-weight:600; margin-bottom:16px; display:block; }
+  h1.headline{ font-size:clamp(2.4rem, 5.2vw, 4rem); line-height:1.02; color:var(--rind-dark); }
+  h1.headline em{ font-style:italic; color:var(--flesh); }
+  .hero p.sub{ margin-top:22px; font-size:1.12rem; max-width:46ch; color:#3a352f; }
+  .hero-ctas{ margin-top:32px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{ display:inline-flex; align-items:center; gap:8px; padding:13px 24px; border-radius:100px; font-weight:600; font-size:0.95rem; text-decoration:none; border:2px solid transparent; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn:focus-visible{ outline:3px solid var(--rind-dark); outline-offset:2px; }
+  .btn-primary{ background:var(--flesh); color:var(--white); box-shadow:var(--shadow); }
+  .btn-ghost{ background:transparent; border-color:var(--rind-dark); color:var(--rind-dark); }
+  .btn-ghost:hover{ background:var(--rind-dark); color:var(--rind-cream); }
+
+  /* halved watermelon spinning like a flat wheel */
+  .melon-stage{ position:relative; display:flex; justify-content:center; align-items:center; min-height:380px; }
+  .melon-wheel{
+    width:min(340px, 78vw); aspect-ratio:1/1; border-radius:50%; position:relative;
+    background: radial-gradient(circle at 50% 50%,
+      #E8213F 0 52%, #F4425F 52% 55%, var(--rind-cream) 55% 64%, #4d8c58 64% 74%, var(--rind-dark) 74% 100%);
+    border:6px solid var(--rind-cream);
+    box-shadow:var(--shadow);
+    animation: wheel-spin 11s linear infinite;
+  }
+  .melon-wheel::before{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background: repeating-conic-gradient(rgba(0,0,0,0.05) 0deg 1.2deg, transparent 1.2deg 8deg);
+    mix-blend-mode:multiply;
+  }
+  .melon-wheel::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 34% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0) 40%);
+    mix-blend-mode:screen;
+  }
+  .melon-wheel .seed{ position:absolute; width:7px; height:12px; background:var(--ink); border-radius:50%; box-shadow:0 0 0 1px rgba(255,255,255,0.15) inset; }
+  @keyframes wheel-spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+
+  /* ---------- problem ---------- */
+  section.problem{ padding:64px 0 70px; color:var(--white); }
+  section.problem h2{ font-size:clamp(1.7rem,3.4vw,2.4rem); max-width:20ch; }
+  .stat-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:40px; }
+  @media (max-width:760px){ .stat-row{ grid-template-columns:1fr; } }
+  .stat{ border-left:2px solid rgba(255,253,248,0.4); padding-left:18px; }
+  .stat .num{ font-family:'Fraunces',serif; font-size:2.6rem; font-weight:600; display:block; }
+  .stat p{ opacity:0.9; font-size:0.95rem; margin-top:4px; }
+
+  /* ---------- products ---------- */
+  section.products{ padding:76px 0; }
+  .section-head{ max-width:640px; margin-bottom:44px; }
+  .section-head .eyebrow{ color:var(--rind-mid); }
+  .section-head h2{ font-size:clamp(1.8rem,3.6vw,2.6rem); color:var(--rind-dark); }
+  .section-head p.lead{ margin-top:12px; color:#5a544a; font-size:1.02rem; max-width:56ch; }
+  .card-grid{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  @media (max-width:820px){ .card-grid{ grid-template-columns:1fr; } }
+  .product-card{ background:var(--white); border-radius:22px; padding:32px; box-shadow:var(--shadow); border-top:6px solid var(--flesh); }
+  .product-card.plastic{ border-top-color:var(--rind-mid); }
+  .product-card h3{ font-size:1.5rem; color:var(--rind-dark); margin-bottom:6px; }
+  .product-card .tag{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--flesh-deep); }
+  .product-card.plastic .tag{ color:var(--rind-mid); }
+  .steps{ list-style:none; margin-top:20px; counter-reset:step; }
+  .steps li{ counter-increment:step; position:relative; padding:10px 0 10px 40px; font-size:0.95rem; border-bottom:1px solid #eee7d6; }
+  .steps li:last-child{ border-bottom:none; }
+  .steps li::before{ content:counter(step); position:absolute; left:0; top:9px; width:24px; height:24px; border-radius:50%; background:var(--flesh); color:var(--white); font-family:'IBM Plex Mono',monospace; font-size:0.75rem; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .product-card.plastic .steps li::before{ background:var(--rind-mid); }
+
+  /* ---------- science ---------- */
+  section.science{ padding:76px 0; color:var(--rind-cream); }
+  section.science .section-head .eyebrow{ color:var(--lime); }
+  section.science h2{ color:var(--white); }
+  section.science .section-head p.lead{ color:#cfe0d3; }
+  .tabbar{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px; }
+  .tabbtn{ font-family:'IBM Plex Mono',monospace; font-size:0.82rem; padding:10px 18px; border-radius:100px; background:rgba(255,253,248,0.08); border:1px solid rgba(255,253,248,0.25); color:var(--rind-cream); cursor:pointer; transition:background .2s, color .2s; }
+  .tabbtn.active{ background:var(--lime); color:var(--ink); border-color:var(--lime); font-weight:600; }
+  .tabbtn:focus-visible{ outline:2px solid var(--lime); outline-offset:3px; }
+  .tabpanel{ display:none; background:rgba(255,253,248,0.06); border-radius:18px; padding:30px; border:1px solid rgba(255,253,248,0.12); }
+  .tabpanel.active{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  @media (max-width:760px){ .tabpanel.active{ grid-template-columns:1fr; } }
+  .tabpanel h4{ font-family:'Fraunces',serif; font-size:1.2rem; margin-bottom:10px; color:var(--lime); }
+  .tabpanel p{ font-size:0.95rem; opacity:0.92; }
+
+  /* ---------- kitchen: real interactive game ---------- */
+  section.kitchen{ padding:76px 0 90px; color:var(--rind-cream); }
+  section.kitchen .section-head .eyebrow{ color:var(--flesh); }
+  section.kitchen h2{ color:var(--white); }
+  section.kitchen .section-head p.lead{ color:#c9c2b3; }
+  .track-switch{ display:flex; gap:10px; margin-bottom:30px; }
+  .track-btn{ flex:1; text-align:left; padding:16px 20px; border-radius:16px; cursor:pointer;
+    background:rgba(255,253,248,0.05); border:1px solid rgba(255,253,248,0.14); color:var(--rind-cream);
+    transition:background .25s, border-color .25s, transform .15s; }
+  .track-btn:hover{ transform:translateY(-2px); }
+  .track-btn.active{ background:rgba(255,253,248,0.1); border-color:var(--accent, var(--flesh)); }
+  .track-btn .tname{ font-family:'Fraunces',serif; font-size:1.1rem; }
+  .track-btn .tprog{ font-family:'IBM Plex Mono',monospace; font-size:0.75rem; opacity:0.75; margin-top:4px; }
+  .track-btn:focus-visible{ outline:2px solid var(--lime); outline-offset:3px; }
+
+  .stage-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  @media (max-width:920px){ .stage-row{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:560px){ .stage-row{ grid-template-columns:1fr; } }
+  .stage-card{ background:rgba(255,253,248,0.04); border:1px solid rgba(255,253,248,0.12); border-radius:18px;
+    padding:18px; display:flex; flex-direction:column; gap:10px; transition:border-color .3s, opacity .3s; }
+  .stage-card.locked{ opacity:0.4; }
+  .stage-card.complete{ border-color:var(--lime); }
+  .stage-num{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; opacity:0.6; }
+  .stage-card h4{ font-family:'Fraunces',serif; font-size:1.05rem; }
+  .stage-card .instr{ font-size:0.8rem; color:#b9b2a2; min-height:32px; }
+
+  .playzone{ position:relative; width:100%; height:118px; border-radius:12px; background:rgba(0,0,0,0.28);
+    overflow:hidden; touch-action:none; cursor:grab; user-select:none; }
+  .playzone.locked-zone{ cursor:not-allowed; }
+  .playzone .hint{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-size:0.68rem; color:rgba(255,253,248,0.55); padding:0 10px; transition:opacity .3s; pointer-events:none; }
+  .playzone.started .hint{ opacity:0; }
+  .playzone.done-zone{ cursor:default; }
+
+  .particle{ position:absolute; width:6px; height:6px; border-radius:50%; background:var(--lime); pointer-events:none;
+    animation:particle-pop .55s ease-out forwards; }
+  @keyframes particle-pop{ from{ opacity:0.9; transform:scale(1);} to{ opacity:0; transform:scale(0.2) translateY(-14px);} }
+
+  /* trim/cut+rinse visual */
+  .zone-trim .rindbar{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:80%; height:34px; border-radius:6px; background:var(--rind-cream); overflow:hidden; }
+  .zone-trim .cap{ position:absolute; left:0; top:0; bottom:0; width:100%; background:var(--rind-mid); }
+  .zone-trim .dirt{ position:absolute; width:6px; height:6px; border-radius:50%; background:#5a4326; }
+  .zone-trim .tool{ position:absolute; font-size:1.4rem; transform:translate(-50%,-50%) rotate(-18deg); left:20%; top:50%; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4)); }
+
+  /* boil / heat: dial */
+  .zone-dial .dial-track{ position:absolute; left:10%; right:10%; top:50%; height:8px; transform:translateY(-50%); border-radius:6px; background:rgba(255,255,255,0.14); }
+  .zone-dial .dial-zone{ position:absolute; top:0; bottom:0; background:rgba(199,217,62,0.45); border-radius:6px; }
+  .zone-dial .dial-handle{ position:absolute; top:50%; width:26px; height:26px; border-radius:50%; background:var(--lime); transform:translate(-50%,-50%);
+    display:flex; align-items:center; justify-content:center; font-size:0.9rem; cursor:grab; box-shadow:0 2px 6px rgba(0,0,0,0.4); }
+  .zone-dial .dial-label{ position:absolute; bottom:8px; left:0; right:0; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:rgba(255,253,248,0.6); }
+  .zone-dial.in-zone .dial-handle{ box-shadow:0 0 0 6px rgba(199,217,62,0.3); }
+
+  /* candy / mix: stir scrub */
+  .zone-stir .basin{ position:absolute; left:50%; top:55%; transform:translate(-50%,-50%); width:70px; height:44px; border-radius:0 0 16px 16px; background:rgba(240,64,90,0.2); border:2px solid var(--flesh); }
+  .zone-stir.plastic .basin{ background:rgba(61,122,79,0.2); border-color:var(--rind-mid); }
+  .zone-stir .fill{ position:absolute; bottom:0; left:0; right:0; height:0%; background:var(--flesh); transition:height .15s linear; }
+  .zone-stir.plastic .fill{ background:var(--rind-mid); }
+  .zone-stir .tool{ position:absolute; font-size:1.3rem; left:50%; top:30%; transform:translate(-50%,-50%); filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4)); }
+
+  /* dry / pour / setdry: hold */
+  .zone-hold .core{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:2.2rem; transition:transform .2s ease, filter .2s ease; }
+  .zone-hold.holding .core{ transform:translate(-50%,-50%) scale(1.18); filter:drop-shadow(0 0 10px rgba(199,217,62,0.7)); }
+  .zone-hold .holdring{ position:absolute; left:50%; top:50%; width:70px; height:70px; transform:translate(-50%,-50%); border-radius:50%; border:3px solid rgba(255,253,248,0.15); }
+  .zone-hold .holdring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .zone-hold .holdring circle{ fill:none; stroke-width:4; }
+  .zone-hold .holdring .track{ stroke:rgba(255,253,248,0.12); }
+  .zone-hold .holdring .fill{ stroke:var(--lime); stroke-linecap:round; }
+
+  .stage-progress{ height:6px; border-radius:4px; background:rgba(255,253,248,0.1); overflow:hidden; }
+  .stage-progress .fillbar{ height:100%; width:0%; background:var(--lime); }
+  .stage-status{ font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--lime); min-height:16px; }
+
+  .reward{ margin-top:26px; padding:26px; border-radius:18px; text-align:center; display:none;
+    background:linear-gradient(135deg, rgba(199,217,62,0.14), rgba(240,64,90,0.1)); border:1px solid rgba(199,217,62,0.35); }
+  .reward.show{ display:block; animation:reward-pop .5s cubic-bezier(.2,.9,.3,1.2) both; }
+  @keyframes reward-pop{ from{ opacity:0; transform:scale(0.9);} to{ opacity:1; transform:scale(1);} }
+  .reward h4{ font-family:'Fraunces',serif; font-size:1.3rem; color:var(--lime); }
+  .reward p{
+  margin-top:8px;
+  color:#000000;
+  font-size:0.92rem;
+  max-width:52ch;
+  margin-inline:auto;
+  }
+
+  /* ---------- hall of fame ---------- */
+  section.hall{ padding:76px 0 90px; }
+  section.hall .section-head .eyebrow{ color:var(--flesh-deep); }
+  section.hall h2{ color:var(--rind-dark); }
+  section.hall .section-head p.lead{ color:#5a544a; }
+  .hall-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:26px 22px; }
+  @media (max-width:820px){ .hall-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:540px){ .hall-grid{ grid-template-columns:1fr; } }
+  .frame{ background:var(--white); padding:14px 14px 18px; border-radius:6px; box-shadow:var(--shadow);
+    transform:rotate(var(--tilt, 0deg)); transition:transform .3s ease, box-shadow .3s ease; position:relative; }
+  .frame:hover{ transform:rotate(0deg) scale(1.03); box-shadow:0 16px 40px rgba(31,64,50,0.25); z-index:5; }
+  .frame:nth-child(1){ --tilt:-3deg; } .frame:nth-child(2){ --tilt:2deg; } .frame:nth-child(3){ --tilt:-2deg; }
+  .frame:nth-child(4){ --tilt:3deg; } .frame:nth-child(5){ --tilt:-2.5deg; } .frame:nth-child(6){ --tilt:2.5deg; }
+  .frame .photo-slot{ width:100%; aspect-ratio:4/5; border-radius:2px; overflow:hidden; background:#e8e0cb; position:relative; }
+  .frame .photo-slot img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .frame .placeholder{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    background:repeating-linear-gradient(135deg, #e8e0cb 0 14px, #ded4b8 14px 28px); color:#8a7f63; text-align:center; padding:14px; }
+  .frame .placeholder .melon-icon{ font-size:1.8rem; opacity:0.7; }
+  .frame .placeholder small{ font-family:'IBM Plex Mono',monospace; font-size:0.68rem; line-height:1.4; opacity:0.85; }
+  .frame .ribbon{ position:absolute; top:-10px; left:-10px; width:34px; height:34px; border-radius:50%;
+    background:var(--flesh); color:var(--white); font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:0.78rem;
+    display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); z-index:2; }
+  .frame .cap{ margin-top:10px; text-align:center; font-family:'Fraunces',serif; font-style:italic; font-size:0.92rem; color:#5a544a; }
+
+  /* ---------- footer ---------- */
+  footer{ color:var(--rind-cream); padding:50px 0 30px; }
+  .foot-grid{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:24px; }
+  footer .brand{ color:var(--rind-cream); }
+  footer p.tag{ opacity:0.7; font-size:0.88rem; margin-top:8px; max-width:36ch; }
+  footer .fine{ margin-top:36px; font-size:0.78rem; opacity:0.55; font-family:'IBM Plex Mono',monospace; }
+</style>
+</head>
+<body>
+
+<div id="progressRing" title="Scroll progress">
+  <svg width="64" height="64" viewBox="0 0 64 64">
+    <circle class="track" cx="32" cy="32" r="27"></circle>
+    <circle class="fill" id="ringFill" cx="32" cy="32" r="27" stroke-dasharray="169.6" stroke-dashoffset="169.6"></circle>
+  </svg>
+</div>
+
+<header class="top">
+  <div class="navwrap">
+    <div class="brand"><span class="dot"></span> Rind &amp; Reborn</div>
+    <nav class="links">
+      <a href="#problem">The Problem</a>
+      <a href="#products">The Products</a>
+      <a href="#science">The Science</a>
+      <a href="#kitchen">The Kitchen</a>
+      <a href="#hall">Hall of Fame</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="reveal">
+      <span class="eyebrow">A food-waste &amp; packaging project</span>
+      <h1 class="headline">The part you <em>throw away</em><br>is the part we <em>need</em>.</h1>
+      <p class="sub">Every watermelon leaves behind a thick white rind and a pile of seeds, usually landfill by dinner. We turn the rind into candy, and turn gelatin into edible film that replaces single-use plastic. Nothing wasted, twice over.</p>
+      <div class="hero-ctas">
+        <a href="#kitchen" class="btn btn-primary">Enter the kitchen →</a>
+        <a href="#hall" class="btn btn-ghost">See the Hall of Fame</a>
+      </div>
+    </div>
+    <div class="melon-stage reveal">
+      <div class="melon-wheel" id="melonWheel" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="problem" id="problem">
+  <div class="wrap">
+    <span class="eyebrow reveal" style="color:var(--rind-cream); opacity:0.85;">Why this matters</span>
+    <h2 style="color:#4d483f; font-size:2.5rem; margin-top:6px;" class="reveal">Rind gets landfilled. Plastic doesn't go away. We're using one to fix the other.</h2>
+    <div class="stat-row">
+      <div class="stat reveal">
+        <span style="color:#4d483f; font-size:2rem; margin-top:6px;" class="num">~30%</span>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">of a watermelon's weight is rind, juicy flesh gets eaten, rind almost always gets binned.</p>
+      </div>
+      <div class="stat reveal">
+        <span style="color:#4d483f; font-size:2rem; margin-top:6px;" class="num">100+ yrs</span>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">roughly how long conventional plastic packaging can persist in the environment.</p>
+      </div>
+      <div class="stat reveal">
+        <span style="color:#4d483f; font-size:2rem; margin-top:6px;" class="num">2 → 0</span>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">two waste problems, food scraps and plastic film, solved with one process each.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="products" id="products">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The products</span>
+      <h2>two of our cool recipez :O</h2>
+    </div>
+    <div class="card-grid">
+      <div class="product-card reveal">
+        <span class="tag">Product 01 — Edible</span>
+        <h3>Watermelon Rind Candy</h3>
+        <p style="color:#5a544a; font-size:0.95rem; margin-top:6px;">The white layer between the green skin and red juicyyy flesh, usually scraped into the trash, but we candied them into a chewy and sweet candyy >:D</p>
+        <ol class="steps">
+          <li>Remove the green outer skin, cut the white rind into small pieces.</li>
+          <li>Boil the rind pieces until soft.</li>
+          <li>Cook in sugar syrup until fully absorbed.</li>
+          <li>Dry the candy before packaging.</li>
+        </ol>
+      </div>
+      <div class="product-card plastic reveal">
+        <span class="tag">Product 02 — Packaging</span>
+        <h3>Edible / Biodegradable Plastic</h3>
+        <p style="color:#5a544a; font-size:0.95rem; margin-top:6px;">Gelatin, glycerin, and water form a flexible edible film that can wrap the candy itself, a surprisingly sweet packaging material that breaks down instead of piling up :O</p>
+        <ol class="steps">
+          <li>Mix water, gelatin, and glycerin.</li>
+          <li>Heat until the gelatin fully dissolves.</li>
+          <li>Pour into a flat mold.</li>
+          <li>Dry 24–48 hours until a flexible film forms.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="science" id="science">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The science</span>
+      <h2>What's actually happening, by subject</h2>
+    </div>
+    <div class="tabbar reveal" role="tablist" aria-label="Science subjects">
+      <button class="tabbtn active" data-tab="bio" role="tab" aria-selected="true">Biology</button>
+      <button class="tabbtn" data-tab="chem" role="tab" aria-selected="false">Chemistry</button>
+      <button class="tabbtn" data-tab="phys" role="tab" aria-selected="false">Physics</button>
+      <button class="tabbtn" data-tab="cs" role="tab" aria-selected="false">Computer Science</button>
+    </div>
+
+    <div class="tabpanel active reveal" id="tab-bio">
+      <div><h4>The rind is genuinely edible</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;" >The white rind carries fiber, vitamin C, and pectin, it's not waste by nature, just waste by habit (ofc because it doesnt taste good), those same properties are what let it hold structure through boiling and candying >< </p></div>
+      <div><h4>Sugar as a preservative</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">A high sugar concentration limits the water available for microbes to grow in, which is why the candy keeps without refrigeration once fully dried ^^ </p></div>
+    </div>
+    <div class="tabpanel" id="tab-chem">
+      <div><h4>Osmosis makes the candy</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">Sugar moves into the rind while water moves out (yeah it did switch), following the concentration gradient. The result is a piece of rind that's sweeter, denser, and more shelf-stable than where it started :O</p></div>
+      <div><h4>Gelatin as a polymer</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">Gelatin proteins link into a tangled network as they cool, forming a film. Glycerin sits between those strands as a plasticizer, keeping the film bendable instead of brittle.</p></div>
+    </div>
+    <div class="tabpanel" id="tab-phys">
+      <div><h4>Heat transfer</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">Even heat is what cooks the rind through and dissolves gelatin completely, uneven heat leaves lumps in the film or unevenly candied rind.</p></div>
+      <div><h4>Evaporation shapes the film</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">As the poured mixture dries, water leaves the surface first. How fast and how evenly it evaporates determines whether the final film is strong and flexible or thin and prone to tearing ^o^</p></div>
+    </div>
+    <div class="tabpanel" id="tab-cs">
+      <div><h4>This website</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">Documents both recipes, the science behind them, and process photos, soo anyone who's wondering can try and made this for themself :DD</p></div>
+      <div><h4>The Kitchen</h4>
+        <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;">game yay game, so we make this minigame too to help you understand the process between this candy making, you drag the knife, hold the dial in the right zone, and press-and-hold to pour and dry, instead of just reading the steps >:DD sounds fun, rightt?? (ofc it is)</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="kitchen" id="kitchen">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Play it</span>
+      <h2 style="color:#4d483f; font-size:3rem; margin-top:6px;">The Kitchen</h2>
+      <p style="color:#4d483f; font-size:0.95rem; margin-top:6px;" class="lead">mini run thru of our process!! actually work each stage: drag the knife to trim, drag to rinse, hold the dial in the right zone to cook, press and hold to pour and dry. Stages unlock in order, just like the real process (omg ur making it!)</p>
+    </div>
+
+    <div class="track-switch reveal">
+      <button class="track-btn active" data-track="candy" style="--accent:#F0405A;">
+        <div style="color:#4d483f; font-size:0.95rem; margin-top:6px;" class="tname">🍬 Candy Track</div>
+        <div style="color:#4d483f; font-size:0.95rem; margin-top:6px;" class="tprog" id="prog-candy">0 / 4 stages complete</div>
+      </button>
+      <button class="track-btn" data-track="plastic" style="--accent:#3D7A4F;">
+        <div style="color:#4d483f; font-size:0.95rem; margin-top:6px;" class="tname">🧪 Edible Plastic Track</div>
+        <div style="color:#4d483f; font-size:0.95rem; margin-top:6px;" class="tprog" id="prog-plastic">0 / 4 stages complete</div>
+      </button>
+    </div>
+
+    <div class="stage-row reveal" id="stageRow"></div>
+    <div class="reward" id="rewardBox">
+      <h4 id="rewardTitle"></h4>
+      <p id="rewardText"></p>
+    </div>
+  </div>
+</section>
+
+<section class="hall" id="hall">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">The hall of fame</span>
+      <h2 style="color:#fff7e7; font-size:3rem; margin-top:6px;" >Six shots that earned their place</h2>
+      <p style="color:#fffbf4; font-size:0.95rem; margin-top:6px;" class="lead">da best process photos from start to finish. eh, sorry we havent add it yet ;-;</p>
+    </div>
+    <div class="hall-grid" id="hallGrid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div>
+      <div class="brand"><span class="dot"></span> Rind &amp; Reborn</div>
+      <p class="tag">A student project turning watermelon rind into candy and gelatin into edible packaging — reducing food waste and single-use plastic at the same time.</p>
+    </div>
+    <div>
+      <span class="eyebrow" style="color:var(--lime);">On this page</span>
+      <nav style="margin-top:10px; display:flex; flex-direction:column; gap:8px; font-size:0.92rem;">
+        <a href="#problem">The Problem</a>
+        <a href="#products">The Products</a>
+        <a href="#science">The Science</a>
+        <a href="#kitchen">The Kitchen</a>
+        <a href="#hall">Hall of Fame</a>
+      </nav>
+    </div>
+  </div>
+  <p class="fine">Built to document the project, explain the science, and make the core idea — sort, don't waste — something you can actually work through by hand.</p>
+</footer>
+
+<script>
+/* ---------------- scroll progress ring ---------------- */
+(function(){
+  const ring = document.getElementById('ringFill');
+  const circumference = 169.6;
+  function update(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop / (h.scrollHeight - h.clientHeight || 1);
+    const offset = circumference - Math.min(Math.max(scrolled,0),1) * circumference;
+    ring.style.strokeDashoffset = offset;
+  }
+  document.addEventListener('scroll', update, {passive:true});
+  update();
+})();
+
+/* ---------------- reveal on scroll ---------------- */
+(function(){
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold:0.15 });
+  els.forEach(el=>io.observe(el));
+})();
+
+/* ---------------- hero melon wheel: seeds embedded in the flesh ---------------- */
+(function(){
+  const wheel = document.getElementById('melonWheel');
+  const seedSpots = [
+    [50,30],[62,36],[70,50],[62,64],[50,70],[38,64],[30,50],[38,36],
+    [50,42],[58,50],[50,58],[42,50]
+  ];
+  seedSpots.forEach(([x,y],i)=>{
+    const s = document.createElement('div');
+    s.className='seed';
+    s.style.left = x+'%'; s.style.top = y+'%';
+    s.style.transform = 'translate(-50%,-50%) rotate(' + (i*37) + 'deg)';
+    wheel.appendChild(s);
+  });
+})();
+
+/* ---------------- science tabs ---------------- */
+(function(){
+  const btns = document.querySelectorAll('.tabbtn');
+  const panels = { bio: document.getElementById('tab-bio'), chem: document.getElementById('tab-chem'),
+    phys: document.getElementById('tab-phys'), cs: document.getElementById('tab-cs') };
+  btns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      btns.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      Object.values(panels).forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+      panels[btn.dataset.tab].classList.add('active');
+    });
+  });
+})();
+
+/* ---------------- The Kitchen: real drag / dial / hold interactions ---------------- */
+(function(){
+  const tracks = {
+    candy: {
+      reward:{ title:'🍬 Candy, done right.', text:'Trimmed, boiled, candied, and dried — that sequence, done by hand, is exactly what turns discarded rind into a shelf-stable sweet.' },
+      stages:[
+        { id:'trim', title:'Trim & Rinse', instr:'Drag the knife across to peel, then drag the sponge to rinse.', type:'trim', cfg:{ distance:640 } },
+        { id:'boil', title:'Boil', instr:'Drag the dial into the boil zone and keep it there.', type:'dial', cfg:{ min:0.55, max:0.85, holdMs:2400, emoji:'🔥' } },
+        { id:'candy', title:'Candy in Syrup', instr:'Drag the spoon to stir the syrup in.', type:'stir', cfg:{ distance:620, emoji:'🥄' }, cls:'' },
+        { id:'dry', title:'Dry', instr:'Press and hold under the sun.', type:'hold', cfg:{ holdMs:2400, emoji:'☀️' } },
+      ]
+    },
+    plastic: {
+      reward:{ title:'🧪 A film that disappears responsibly.', text:'Mixed, heated, poured, and set — a biodegradable film built to wrap what you just made, instead of another layer of landfill plastic.' },
+      stages:[
+        { id:'mix', title:'Mix', instr: 'Drag the spoon to combine water, gelatin, and glycerin.', type:'stir', cfg:{ distance:600, emoji:'🥄' }, cls:'plastic' },
+        { id:'heat', title:'Heat', instr:'Drag the dial into the melt zone and keep it there.', type:'dial', cfg:{ min:0.6, max:0.88, holdMs:2400, emoji:'🌡️' } },
+        { id:'pour', title:'Pour', instr:'Press and hold to pour steadily into the mold.', type:'hold', cfg:{ holdMs:2100, emoji:'🫗' } },
+        { id:'setdry', title:'Set & Dry', instr:'Press and hold while the film sets clear.', type:'hold', cfg:{ holdMs:2600, emoji:'⏳' } },
+      ]
+    }
+  };
+
+  const stageRow = document.getElementById('stageRow');
+  const rewardBox = document.getElementById('rewardBox');
+  const rewardTitle = document.getElementById('rewardTitle');
+  const rewardText = document.getElementById('rewardText');
+  const trackBtns = document.querySelectorAll('.track-btn');
+  const state = { candy:[false,false,false,false], plastic:[false,false,false,false] };
+  let currentTrack = 'candy';
+  let activeApis = [];
+  let lastTick = null;
+
+  function zoneMarkup(stage){
+    if (stage.type === 'trim'){
+      let dirt = '';
+      const spots = [[62,30],[70,50],[60,68],[76,60]];
+      spots.forEach(([x,y])=>{ dirt += '<div class="dirt" style="left:'+x+'%; top:'+y+'%;"></div>'; });
+      return '<div class="rindbar"><div class="cap"></div>' + dirt + '</div><div class="tool">🔪</div><div class="hint">drag ↔ to cut, then rinse</div>';
+    }
+    if (stage.type === 'dial'){
+      return '<div class="dial-track"><div class="dial-zone"></div></div>' +
+        '<div class="dial-handle">' + stage.cfg.emoji + '</div>' +
+        '<div class="dial-label">drag into the highlighted zone</div>';
+    }
+    if (stage.type === 'stir'){
+      return '<div class="basin"><div class="fill"></div></div><div class="tool">' + stage.cfg.emoji + '</div><div class="hint">drag in circles to stir</div>';
+    }
+    if (stage.type === 'hold'){
+      return '<div class="holdring"><svg viewBox="0 0 70 70"><circle class="track" cx="35" cy="35" r="30"></circle><circle class="fill" cx="35" cy="35" r="30" stroke-dasharray="188.5" stroke-dashoffset="188.5"></circle></svg></div>' +
+        '<div class="core">' + stage.cfg.emoji + '</div><div class="hint">press &amp; hold</div>';
+    }
+    return '';
+  }
+
+  function renderTrack(name){
+    const t = tracks[name];
+    activeApis = [];
+    stageRow.innerHTML = '';
+    rewardBox.classList.remove('show');
+    t.stages.forEach((stage, idx)=>{
+      const done = state[name][idx];
+      const unlocked = idx === 0 || state[name][idx-1];
+      const card = document.createElement('div');
+      card.className = 'stage-card' + (done ? ' complete' : (!unlocked ? ' locked' : ''));
+      const zoneClasses = 'playzone zone-' + stage.type + ' ' + (stage.cls||'') + (done ? ' done-zone' : (!unlocked ? ' locked-zone' : ''));
+      card.innerHTML =
+        '<span class="stage-num">STAGE ' + (idx+1) + (done ? ' · DONE' : '') + '</span>' +
+        '<h4>' + stage.title + '</h4>' +
+        '<p class="instr">' + stage.instr + '</p>' +
+        '<div class="' + zoneClasses + '" id="zone-' + name + idx + '">' + zoneMarkup(stage) + '</div>' +
+        '<div class="stage-progress"><div class="fillbar" id="bar-' + name + idx + '" style="width:' + (done?100:0) + '%;"></div></div>' +
+        '<div class="stage-status" id="status-' + name + idx + '">' + (done ? 'Complete' : '') + '</div>';
+      stageRow.appendChild(card);
+
+      if (unlocked && !done){
+        const api = setupStage(name, idx, stage);
+        activeApis.push(api);
+      }
+    });
+    updateProgressLabel(name);
+    if (!lastTick) startTicking();
+  }
+
+  function setupStage(name, idx, stage){
+    const zone = document.getElementById('zone-' + name + idx);
+    const bar = document.getElementById('bar-' + name + idx);
+    const status = document.getElementById('status-' + name + idx);
+    const api = { progress:0, inZone:false, tick:null, done:false };
+
+    function setProgress(p){
+      api.progress = Math.max(api.progress, Math.min(1, p));
+      bar.style.width = (api.progress*100) + '%';
+      render(stage.type, zone, api.progress, stage);
+      if (api.progress >= 1 && !api.done){
+        api.done = true;
+        complete(name, idx);
+      }
+    }
+    api.setProgress = setProgress;
+
+    if (stage.type === 'trim' ){
+      let total = 0;
+      const tool = zone.querySelector('.tool');
+      function localPos(e){ const r = zone.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+      let dragging = false, lastX=0, lastY=0;
+      zone.addEventListener('pointerdown', e=>{
+        dragging = true; zone.classList.add('started'); zone.setPointerCapture(e.pointerId);
+        const p = localPos(e); lastX=p.x; lastY=p.y;
+      });
+      zone.addEventListener('pointermove', e=>{
+        if (!dragging) return;
+        const p = localPos(e);
+        const d = Math.hypot(p.x-lastX, p.y-lastY);
+        total += d; lastX=p.x; lastY=p.y;
+        if (tool){ tool.style.left = Math.max(6,Math.min(zone.clientWidth-6,p.x)) + 'px'; tool.style.top = Math.max(6,Math.min(zone.clientHeight-6,p.y)) + 'px'; }
+        if (Math.random() < 0.35) spawnParticle(zone, p);
+        setProgress(total / stage.cfg.distance);
+      });
+      const endDrag = ()=>{ dragging = false; };
+      zone.addEventListener('pointerup', endDrag);
+      zone.addEventListener('pointercancel', endDrag);
+      status.textContent = 'Cutting…';
+    }
+
+    else if (stage.type === 'dial'){
+      const track = zone.querySelector('.dial-track');
+      const handle = zone.querySelector('.dial-handle');
+      const band = zone.querySelector('.dial-zone');
+      band.style.left = (stage.cfg.min*100) + '%';
+      band.style.width = ((stage.cfg.max-stage.cfg.min)*100) + '%';
+      handle.style.left = '4%';
+      let dragging = false;
+      function setFromClientX(clientX){
+        const r = track.getBoundingClientRect();
+        let pct = (clientX - r.left) / r.width; pct = Math.max(0, Math.min(1, pct));
+        handle.style.left = (pct*100) + '%';
+        api.inZone = pct >= stage.cfg.min && pct <= stage.cfg.max;
+        zone.classList.toggle('in-zone', api.inZone);
+        status.textContent = api.inZone ? 'Holding steady…' : 'Adjust the dial…';
+      }
+      handle.addEventListener('pointerdown', e=>{ dragging = true; zone.classList.add('started'); handle.setPointerCapture(e.pointerId); e.stopPropagation(); });
+      handle.addEventListener('pointermove', e=>{ if (dragging) setFromClientX(e.clientX); });
+      handle.addEventListener('pointerup', ()=> dragging = false);
+      handle.addEventListener('pointercancel', ()=> dragging = false);
+      api.tick = (dt)=>{ if (api.inZone) setProgress(api.progress + dt/stage.cfg.holdMs); };
+    }
+
+    else if (stage.type === 'stir'){
+      let total = 0;
+      const tool = zone.querySelector('.tool');
+      function localPos(e){ const r = zone.getBoundingClientRect(); return { x:e.clientX-r.left, y:e.clientY-r.top }; }
+      let dragging=false, lastX=0, lastY=0;
+      zone.addEventListener('pointerdown', e=>{
+        dragging = true; zone.classList.add('started'); zone.setPointerCapture(e.pointerId);
+        const p = localPos(e); lastX=p.x; lastY=p.y;
+      });
+      zone.addEventListener('pointermove', e=>{
+        if (!dragging) return;
+        const p = localPos(e);
+        const d = Math.hypot(p.x-lastX, p.y-lastY);
+        total += d; lastX=p.x; lastY=p.y;
+        if (tool){ tool.style.left = Math.max(6,Math.min(zone.clientWidth-6,p.x)) + 'px'; tool.style.top = Math.max(6,Math.min(zone.clientHeight-6,p.y)) + 'px'; tool.style.position='absolute'; }
+        if (Math.random() < 0.3) spawnParticle(zone, p);
+        setProgress(total / stage.cfg.distance);
+      });
+      const endDrag = ()=>{ dragging = false; };
+      zone.addEventListener('pointerup', endDrag);
+      zone.addEventListener('pointercancel', endDrag);
+      status.textContent = 'Stirring…';
+    }
+
+    else if (stage.type === 'hold'){
+      let holding = false;
+      zone.addEventListener('pointerdown', e=>{ holding = true; zone.classList.add('started','holding'); zone.setPointerCapture(e.pointerId); status.textContent='Holding…'; });
+      const release = ()=>{ holding = false; zone.classList.remove('holding'); if (api.progress < 1) status.textContent = 'Paused — press again'; };
+      zone.addEventListener('pointerup', release);
+      zone.addEventListener('pointercancel', release);
+      const ring = zone.querySelector('.holdring .fill');
+      api.tick = (dt)=>{
+        if (holding){ setProgress(api.progress + dt/stage.cfg.holdMs); }
+        if (ring) ring.style.strokeDashoffset = 188.5 - (api.progress*188.5);
+      };
+    }
+
+    return api;
+  }
+
+  function render(type, zone, p, stage){
+    if (type === 'trim'){
+      const cap = zone.querySelector('.cap');
+      const dirts = zone.querySelectorAll('.dirt');
+      if (p <= 0.5){
+        cap.style.width = Math.max(0, 100 - (p/0.5)*100) + '%';
+        dirts.forEach(d=> d.style.opacity = 1);
+      } else {
+        cap.style.width = '0%';
+        const rp = (p-0.5)/0.5;
+        dirts.forEach(d=> d.style.opacity = Math.max(0, 1-rp));
+      }
+    } else if (type === 'stir'){
+      const fill = zone.querySelector('.fill');
+      if (fill) fill.style.height = (p*100) + '%';
+    } else if (type === 'hold'){
+      // core scale handled by CSS .holding; nothing extra needed per-frame besides ring (done in tick)
+    }
+  }
+
+  function spawnParticle(zone, p){
+    const el = document.createElement('div');
+    el.className = 'particle';
+    el.style.left = p.x + 'px';
+    el.style.top = p.y + 'px';
+    zone.appendChild(el);
+    setTimeout(()=> el.remove(), 600);
+  }
+
+  function complete(name, idx){
+    state[name][idx] = true;
+    setTimeout(()=>{
+      renderTrack(currentTrack);
+      if (state[name].every(Boolean)) showReward(name);
+    }, 260);
+  }
+
+  function showReward(name){
+  const t = tracks[name];
+
+  rewardTitle.textContent = t.reward.title;
+  rewardTitle.style.color = t.reward.titleColor;
+
+  rewardText.textContent = t.reward.text;
+  rewardText.style.color = t.reward.textColor;
+
+  rewardBox.classList.add('show');
+  }
+
+  function updateProgressLabel(name){
+    const done = state[name].filter(Boolean).length;
+    document.getElementById('prog-' + name).textContent = done + ' / 4 stages complete';
+  }
+
+  function startTicking(){
+    lastTick = performance.now();
+    function loop(ts){
+      const dt = ts - lastTick;
+      lastTick = ts;
+      activeApis.forEach(api=>{ if (api.tick) api.tick(dt); });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  trackBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      trackBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTrack = btn.dataset.track;
+      renderTrack(currentTrack);
+    });
+  });
+
+  updateProgressLabel('candy');
+  updateProgressLabel('plastic');
+  renderTrack('candy');
+})();
+
+/* ---------------- Hall of Fame: auto-detect rind1..rind6 ---------------- */
+(function(){
+  const grid = document.getElementById('hallGrid');
+  const exts = ['jpg','jpeg','png','webp'];
+  for (let i=1; i<=6; i++){
+    const frame = document.createElement('div');
+    frame.className = 'frame';
+    frame.innerHTML =
+      '<div class="ribbon">' + String(i).padStart(2,'0') + '</div>' +
+      '<div class="photo-slot">' +
+        '<img alt="Process photo ' + i + '" style="display:none;">' +
+        '<div class="placeholder">' +
+          '<div class="melon-icon">🍉</div>' +
+          '<small>rind' + i + '.jpg<br>not added yet</small>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cap">Process shot ' + String(i).padStart(2,'0') + '</div>';
+    grid.appendChild(frame);
+
+    const img = frame.querySelector('img');
+    const placeholder = frame.querySelector('.placeholder');
+    let attempt = 0;
+    function tryNext(){
+      if (attempt >= exts.length){ img.style.display='none'; placeholder.style.display='flex'; return; }
+      img.onerror = ()=>{ attempt++; tryNext(); };
+      img.onload = ()=>{ img.style.display='block'; placeholder.style.display='none'; };
+      img.src = 'rind' + i + '.' + exts[attempt];
+    }
+    tryNext();
+  }
+})();
+</script>
+
+</body>
+</html>
